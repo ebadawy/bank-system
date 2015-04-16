@@ -13,6 +13,7 @@ class Node {
     Node<T> *get_next() { return next; }
     void set_next(Node<T> * n) { next = n; }
     friend class LinkedList;
+    template<class U>
     friend class Queue;
 };
 
