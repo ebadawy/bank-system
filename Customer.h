@@ -1,21 +1,24 @@
 #ifndef CUSTOMER_H
 #define CUSTOMER_H
 
+#include <string>
+#include "Clerk.h"
+
 class Customer {
   private:
-    string name;
-    string service;
+    std::string name;
+    std::string service;
     long service_time;
     long finish_time;
     Clerk *clerk;
   public:
     Customer();
-    Customer(string n, string s);
-    void set_name(string n);
-    void set_service(string s);
+    Customer(std::string n, std::string s);
+    void set_name(std::string n);
+    void set_service(std::string s);
     void set_clerk(Clerk *c);
-    string get_name() { return name; }
-    string get_service() { return service; }
+    std::string get_name() { return name; }
+    std::string get_service() { return service; }
     long get_service_time() { return service_time; }
     long get_finish_time() { return finish_time; }
     Clerk *get_clerk() { return clerk; }
@@ -30,23 +33,23 @@ Customer::Customer() {
   clerk = NULL;
 }
 
-Customer::Customer(string n, string s) {
+Customer::Customer(std::string n, std::string s) {
   name = n;
   service = s;
-  sertice_time = -1;
+  service_time = -1;
   finish_time = -1;
   clerk = NULL; 
 }
 
-void Customer::set_name(string name) {
+void Customer::set_name(std::string n) {
   name = n;
 }
 
-void Customer::set_service(string s) {
+void Customer::set_service(std::string s) {
   service = s;
 }
 
-viod Customer::set_clerk(Clerk *c) {
+void Customer::set_clerk(Clerk *c) {
   clerk = c;
 }
 

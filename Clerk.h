@@ -1,18 +1,23 @@
 #ifndef CLERK_H
 #define CLERK_H
 
+#include <string>
+#include "Customer.h"
+
+class Customer;
+
 class Clerk {
   private:
-    string name;
-    Cutomer *customer;
+    std::string name;
+    Customer *customer;
   public:
     Clerk();
-    Clerk(string n);
-    void set_name(string n) { name = n; }
+    Clerk(std::string n);
+    void set_name(std::string n) { name = n; }
     void set_cutomer(Customer *c) { customer = c; }
-    string get_name() { return name; }
+    std::string get_name() { return name; }
     Customer *get_cutomer() { return customer; }
-    freind class Customer;
+    friend class Customer;
 };
 
 Clerk::Clerk() {
@@ -20,9 +25,9 @@ Clerk::Clerk() {
   customer = NULL;
 }
 
-Clerk::Clerk(string n) {
+Clerk::Clerk(std::string n) {
   name = n;
-  cutomer = NULL;
+  customer = NULL;
 }
 
 #endif
