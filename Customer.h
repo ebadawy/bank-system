@@ -1,3 +1,6 @@
+#ifndef CUSTOMER_H
+#define CUSTOMER_H
+
 class Customer {
   private:
     string name;
@@ -46,3 +49,5 @@ void Customer::set_service(string s) {
 viod Customer::set_clerk(Clerk *c) {
   clerk = c;
 }
+
+#endif
