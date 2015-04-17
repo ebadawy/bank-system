@@ -12,6 +12,7 @@ class Queue {
     Queue();
     void enqueue(T val);
     T dequeue();
+    T get_first();
 };
 
 template<class T>
@@ -46,4 +47,8 @@ T Queue<T>::dequeue() {
   return returnVal;
 }
 
+template<class T>
+T Queue<T>::get_first() {
+  return first->get_data();
+}
 #endif  
