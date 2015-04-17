@@ -1,9 +1,12 @@
 #include <ncurses.h>
-#include<iostream>
+#include <iostream>
 #include <pthread.h>
 #include <string>
 #include <unistd.h>
 #include <sstream>
+#include "Queue.h"
+#include "Customer.h"
+#include "Clerk.h"
 
 using namespace std;
 
@@ -18,14 +21,14 @@ Queue<Clerk> idel_clerks;
 Queue<Clerk> busy_clerks;
 
 time_t now;
-struct tm *tmp;
 pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
 int main(int argc, char *argv[]) {
   pthread_t input_thread, clock_thread;
- 
+
   initscr();
   cbreak();
+  curs_set(0);
 
   int iret1 = pthread_create(&input_thread, NULL, &input, NULL);
   int iret2 = pthread_create(&clock_thread, NULL, &clock, NULL);
@@ -51,6 +54,7 @@ void *input(void*) {
   WINDOW *general_win;
   int max_x, max_y;
   stringstream stm;
+  struct tm *tmp;
   while(true){
     getmaxyx(stdscr, max_y, max_x);
     input_win = newwin(1, max_x, max_y-1, 0);
@@ -59,12 +63,38 @@ void *input(void*) {
     print_scr(input_win, ">> ");
     wgetstr(input_win, str);
     print_scr(input_win, ">> ");
-    if(!str_equals(str,"quit")) {
+    stringstream cmd;
+    stringstream name, service;
+    
+    cmd << str[0] << str[1] << str[2] << str[3];
+    if(cmd.str() == "quit" && !str[4])
+      break;
+    else if(cmd.str() == "cust") {
+      int i = 8;
+      char c = str[i];
+      name.str("");
+      service.str("");
+      //get customer name
+      while(c != ',') {
+        name << c;
+        c = str[++i];          
+      }
+      //get customer service
+      while(c) {
+        if(c != ',' && c != ' ')
+          service << c;
+        c = str[++i];
+      }
+      if(service.str() != "withdraw" || service.str() != "depose" ||
+         service.str() != "transfer" )
+        print_scr(general_win, "Malformed Service!");
+    }
+    /*if(!str_equals(str,"quit")) {
       stm.str("");
       stm << "You Entered: " << str;
       print_scr(general_win, stm.str()); 
     } else
-      break; 
+      break;*/ 
   }
 }
 
@@ -72,6 +102,7 @@ void *clock(void*) {
   WINDOW *clock_win;
   int max_x, max_y;
   stringstream stm;
+  struct tm *tmp;
   
   while(true) {
     getmaxyx(stdscr, max_y, max_x);
