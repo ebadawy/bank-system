@@ -12,6 +12,13 @@ void *input(void*);
 void *clock(void*);
 void print_scr(WINDOW *win, string str);
 
+Queue<Customer> wating_customers;
+Queue<Customer> serving_customer;
+Queue<Clerk> idel_clerks;
+Queue<Clerk> busy_clerks;
+
+time_t now;
+struct tm *tmp;
 pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
 int main(int argc, char *argv[]) {
@@ -47,16 +54,15 @@ void *input(void*) {
   while(true){
     getmaxyx(stdscr, max_y, max_x);
     input_win = newwin(1, max_x, max_y-1, 0);
-    general_win = newwin(max_y-2, max_x-8, 0, 0);
+    general_win = newwin(max_y-2, max_x, 1, 0);
     char str[70];
-    print_scr(input_win, ">>");
+    print_scr(input_win, ">> ");
     wgetstr(input_win, str);
-    print_scr(input_win, ">>");
+    print_scr(input_win, ">> ");
     if(!str_equals(str,"quit")) {
       stm.str("");
       stm << "You Entered: " << str;
       print_scr(general_win, stm.str()); 
-
     } else
       break; 
   }
@@ -65,29 +71,18 @@ void *input(void*) {
 void *clock(void*) {
   WINDOW *clock_win;
   int max_x, max_y;
-  int sec = 0, min = 0;
-  curs_set(0);
-  print_scr(clock_win, "00 : 00");
-  curs_set(2);
   stringstream stm;
-  stm << min << " : " << sec;
+  
   while(true) {
     getmaxyx(stdscr, max_y, max_x);
-    clock_win = newwin(1, 7, 0, max_x-7);
-    curs_set(0);
-    print_scr(clock_win, stm.str());
-    curs_set(2);
+    clock_win = newwin(1, 14, 0, max_x-14);
     sleep(1);
-    if(sec > 58 && min > 58) 
-      min = sec = 0;
-    else if (sec > 58) {
-      min++;
-      sec = 0;
-    } else
-        sec++;
+    time(&now);
+    tmp = localtime(&now);
     stm.str("");
-    stm << min << " : " << sec;
-  }
+    stm << tmp->tm_hour << " : " << tmp->tm_min << " : " << tmp->tm_sec;
+    print_scr(clock_win, stm.str());
+ }
 }
 
 void print_scr(WINDOW *win, string msg) {
@@ -97,4 +92,4 @@ void print_scr(WINDOW *win, string msg) {
   wprintw(win, c);
   wrefresh(win);
   pthread_mutex_unlock( &mutex1 );
-} 
+}
