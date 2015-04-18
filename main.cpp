@@ -13,18 +13,20 @@ using namespace std;
 bool str_equals(char str[], string s);
 void *input(void*);
 void *clock(void*);
+void *sys(void*);
 void print_scr(WINDOW *win, string str);
 
 Queue<Customer> wating_customers;
-Queue<Customer> serving_customer;
+Queue<Customer> serving_customers;
 Queue<Clerk> idel_clerks;
 Queue<Clerk> busy_clerks;
 
 time_t now;
 pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
+WINDOW *general_win;
 
 int main(int argc, char *argv[]) {
-  pthread_t input_thread, clock_thread;
+  pthread_t input_thread, clock_thread, sys_thread;
 
   initscr();
   cbreak();
@@ -32,8 +34,9 @@ int main(int argc, char *argv[]) {
 
   int iret1 = pthread_create(&input_thread, NULL, &input, NULL);
   int iret2 = pthread_create(&clock_thread, NULL, &clock, NULL);
+  int iret3 = pthread_create(&sys_thread, NULL, &sys, NULL);
 
-  if(iret1 || iret2)
+  if(iret1 || iret2 || iret3)
     printw("ERROR!");
   pthread_join(input_thread, NULL);
     
@@ -51,7 +54,6 @@ bool str_equals(char str[], string s) {
 
 void *input(void*) {
   WINDOW *input_win;
-  WINDOW *general_win;
   int max_x, max_y;
   stringstream stm;
   struct tm *tmp;
@@ -85,16 +87,23 @@ void *input(void*) {
           service << c;
         c = str[++i];
       }
-      if(service.str() != "withdraw" || service.str() != "depose" ||
+      if(service.str() != "withdraw" && service.str() != "depose" &&
          service.str() != "transfer" )
         print_scr(general_win, "Malformed Service!");
+      else {
+        Customer c(name.str(), service.str(), now);
+        wating_customers.enqueue(c);
+      }
+    } else if(cmd.str() == "cler") {
+      int i = 5;
+      char c = str[i];
+      while(c) {
+        name << c;
+        c = str[++i];
+      }
+      Clerk k(name.str(), now);
+      idel_clerks.enqueue(k);
     }
-    /*if(!str_equals(str,"quit")) {
-      stm.str("");
-      stm << "You Entered: " << str;
-      print_scr(general_win, stm.str()); 
-    } else
-      break;*/ 
   }
 }
 
@@ -114,6 +123,26 @@ void *clock(void*) {
     stm << tmp->tm_hour << " : " << tmp->tm_min << " : " << tmp->tm_sec;
     print_scr(clock_win, stm.str());
  }
+}
+
+void *sys(void*) {
+  bool exit = false;
+  stringstream stm;
+  struct tm *tmp;
+  while(true) {
+    sleep(1);
+    while(!wating_customers.is_empty() && !idel_clerks.is_empty()) {
+      Customer c = wating_customers.dequeue();
+      Clerk k = idel_clerks.dequeue();
+      c.set_clerk(k.get_name());
+      c.set_service_time(now);
+      serving_customers.enqueue(c);
+      k.set_customer(c.get_name());
+      busy_clerks.enqueue(k);
+      stm << k.get_name() << " is serving " << c.get_name();
+      print_scr(general_win, stm.str());
+    }
+  }  
 }
 
 void print_scr(WINDOW *win, string msg) {
