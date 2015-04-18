@@ -13,6 +13,7 @@ class Queue {
     void enqueue(T val);
     T dequeue();
     T get_first();
+    bool is_empty();
 };
 
 template<class T>
@@ -50,5 +51,10 @@ T Queue<T>::dequeue() {
 template<class T>
 T Queue<T>::get_first() {
   return first->get_data();
+}
+
+template<class T>
+bool Queue<T>::is_empty() {
+  return (first == NULL);
 }
 #endif  
