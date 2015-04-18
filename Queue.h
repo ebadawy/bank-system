@@ -38,8 +38,6 @@ void Queue<T>::enqueue(T val) {
 
 template<class T>
 T Queue<T>::dequeue() {
-  if(first == NULL)
-    return -1;
   Node<T> *tmp = first;
   first = first->get_next();
   length--;
