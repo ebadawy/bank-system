@@ -21,6 +21,7 @@ class Clerk {
     std::string get_name() { return name; }
     Customer* get_cutomer() { return customer; }
     Clerk& operator=(const Clerk& c);
+    bool operator==(Clerk &c) { return (name == c.get_name()); }
     friend class Customer;
 };
 
