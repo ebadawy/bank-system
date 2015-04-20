@@ -12,6 +12,7 @@ class Node {
     void set_data(T d) { data = d; }
     Node<T> *get_next() { return next; }
     void set_next(Node<T> * n) { next = n; }
+    template<class U>
     friend class LinkedList;
     template<class U>
     friend class Queue;

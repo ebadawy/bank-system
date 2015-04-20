@@ -7,6 +7,7 @@
 #include "Queue.h"
 #include "Customer.h"
 #include "Clerk.h"
+#include "LinkedList.h"
 
 using namespace std;
 
@@ -17,9 +18,9 @@ void *sys(void*);
 void print_scr(WINDOW *win, string str);
 
 Queue<Customer> wating_customers;
-Queue<Customer> serving_customers;
+LinkedList<Customer> serving_customers;
 Queue<Clerk> idel_clerks;
-Queue<Clerk> busy_clerks;
+LinkedList<Clerk> busy_clerks;
 
 time_t now;
 pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
