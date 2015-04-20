@@ -14,7 +14,7 @@ class LinkedList {
    public:
     LinkedList();
     void add(T val);
-    bool remove(Node<T> *node);
+    virtual bool remove(T node_data);
     int size();
     Node<T>* get_head();
     void remove_head();
@@ -46,8 +46,8 @@ int LinkedList<T>::size() {
 }
 
 template<class T>
-bool LinkedList<T>::remove(Node<T> *node) {
-  if(head->data == node->data) {
+bool LinkedList<T>::remove(T node_data) {
+  if(head->data == node_data) {
     Node<T> *tmp = head;
     head = head->next;
     delete tmp;
@@ -56,7 +56,7 @@ bool LinkedList<T>::remove(Node<T> *node) {
   }
   Node<T> *currentNode = head;
   while(currentNode->next != NULL) {
-    if(currentNode->next->data == node->data) {
+    if(currentNode->next->data == node_data) {
       Node<T> *tmp = currentNode->next;
       currentNode->next = tmp->next;
       delete tmp;
