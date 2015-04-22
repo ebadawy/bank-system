@@ -14,9 +14,9 @@ class LinkedList {
    public:
     LinkedList();
     void add(T val);
-    virtual bool remove(T node_data);
-    int size();
-    Node<T>* get_head();
+    Node<T>* remove(T node_data);
+    int get_length();
+    Node<T>* get_first();
     void remove_head();
 };
 
@@ -41,18 +41,19 @@ void LinkedList<T>::add(T val) {
 }
 
 template<class T>
-int LinkedList<T>::size() {
+int LinkedList<T>::get_length() {
   return length;
 }
 
 template<class T>
-bool LinkedList<T>::remove(T node_data) {
+Node<T>* LinkedList<T>::remove(T node_data) {
+    //virtual bool remove(Node<T> *node);
   if(head->data == node_data) {
     Node<T> *tmp = head;
     head = head->next;
     delete tmp;
     length--;
-    return true;
+    return head;
   }
   Node<T> *currentNode = head;
   while(currentNode->next != NULL) {
@@ -61,15 +62,15 @@ bool LinkedList<T>::remove(T node_data) {
       currentNode->next = tmp->next;
       delete tmp;
       length--;
-      return true;
+      return tmp->next;
     }
     currentNode = currentNode->next;
   }
-  return false;
+  return NULL;
 }
 
 template<class T>
-Node<T>* LinkedList<T>::get_head() {
+Node<T>* LinkedList<T>::get_first() {
   return head;
 }
 
