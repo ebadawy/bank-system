@@ -12,7 +12,8 @@ class Queue {
     Queue();
     void enqueue(T val);
     T dequeue();
-    T get_first();
+    Node<T>* get_first() { return first; }
+    int get_length();
     bool is_empty();
 };
 
@@ -37,6 +38,11 @@ void Queue<T>::enqueue(T val) {
 }
 
 template<class T>
+int Queue<T>::get_length() {
+  return length;
+}
+
+template<class T>
 T Queue<T>::dequeue() {
   Node<T> *tmp = first;
   first = first->get_next();
@@ -47,12 +53,8 @@ T Queue<T>::dequeue() {
 }
 
 template<class T>
-T Queue<T>::get_first() {
-  return first->get_data();
-}
-
-template<class T>
 bool Queue<T>::is_empty() {
   return (first == NULL);
 }
+
 #endif  
