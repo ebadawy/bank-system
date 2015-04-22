@@ -189,38 +189,55 @@ void *sys(void*) {
       stm << c.get_clerk()->get_name() << " is serving " << c.get_name() << ".";
       print_line(stm.str(), line);
     }
-    Node<Customer>* current_customer_node = serving_customers.get_head();
+    Node<Customer>* current_customer_node = serving_customers.get_first();
     string customer_name, clerk_name;
     while(current_customer_node != NULL) {
       if(current_customer_node->get_data().get_finish_time() <= now) {
-        print_line("finsihed", line);
         Clerk *current_clerk = current_customer_node->get_data().get_clerk();
         clerk_name = current_clerk->get_name();
         customer_name = current_customer_node->get_data().get_name();
-        if(serving_customers.remove(current_customer_node->get_data()))
-          print_line(customer_name + " is now leaving.", line);
-        if(busy_clerks.remove(*current_clerk)) {
-          print_line(clerk_name + " is wating for another customer.", line);
-          idel_clerks.enqueue(*current_clerk);
-        }
-      }
+        
+        print_line(customer_name + " is now leaving.", line);
+
+        print_line(current_customer_node->get_data().get_clerk()->get_name() + " is wating for another customer.", line);
+        idel_clerks.enqueue(*(current_customer_node->get_data().get_clerk()));
+        busy_clerks.remove(*current_clerk); 
+        current_customer_node = serving_customers.remove(current_customer_node->get_data());
+      } else
         current_customer_node = current_customer_node->get_next();  
     }
   }  
 }
 void print_line(string msg, int &row) {
-  pthread_mutex_lock( &print_line_mutex );
-  WINDOW *tmp;
+  pthread_mutex_lock( &mutex1 );
+  WINDOW *tmp_win;
+  struct tm *tmp;
+  tmp = localtime(&now);
+  stringstream str;
   int max_x, max_y;
   getmaxyx(stdscr, max_y, max_x);
-  tmp = newwin(row+2, max_x, row+1, 0);
-  const char *c = msg.c_str();
-  pthread_mutex_lock( &mutex1 ); 
-  wprintw(tmp, c);
-  pthread_mutex_lock( &mutex1 );
-  wrefresh(tmp);
+  tmp_win = newwin(row+2, max_x, row+1, 0);
+  int hour = tmp->tm_hour;
+  int min = tmp->tm_min;
+  int sec = tmp->tm_sec;
+  if(hour <= 9)
+    str << "[  " << hour;
+  else
+    str << "[ " << hour;;
+  if(min <= 9) 
+    str << " :  " << min;
+  else
+    str << " : " << min;
+  if(sec <= 9)
+    str << " :  " << sec << " ] " << msg;
+  else
+    str << " : " << sec << " ] " << msg;
+  
+  const char *c = str.str().c_str();
+  wprintw(tmp_win, c);
+  wrefresh(tmp_win);
   row++;
-  pthread_mutex_unlock( &print_line_mutex );
+  pthread_mutex_unlock( &mutex1 );
 }
 void print_scr(WINDOW *win, string msg) {
   pthread_mutex_lock( &mutex1 );
