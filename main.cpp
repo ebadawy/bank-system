@@ -19,7 +19,7 @@ void print_scr(WINDOW *win, string str);
 void print_line(string str, int &row);
 Queue<Customer> wating_customers;
 LinkedList<Customer> serving_customers;
-Queue<Clerk> idel_clerks;
+Queue<Clerk> idle_clerks;
 LinkedList<Clerk> busy_clerks;
 
 int line = 0;
@@ -103,25 +103,25 @@ void *input(void*) {
       if(str[5] == '-') {
         stringstream stm;
         stm << str[6] << str[7] << str[8] << str[9];
-        if(stm.str() == "idel") {
-          if(idel_clerks.get_length() == 0 && busy_clerks.get_length() != 0)
+        if(stm.str() == "idle") {
+          if(idle_clerks.get_length() == 0 && busy_clerks.get_length() != 0)
             print_line("All clerks are busy serving other customers.", line);
-          else if(idel_clerks.get_length() == 0 && busy_clerks.get_length() == 0)
+          else if(idle_clerks.get_length() == 0 && busy_clerks.get_length() == 0)
             print_line("There is no clerks yet arrived.", line);
           else {
             stringstream clerks;
-            Node<Clerk> *current_clerk_node = idel_clerks.get_first();
+            Node<Clerk> *current_clerk_node = idle_clerks.get_first();
             while(current_clerk_node != NULL) {
               clerks << current_clerk_node->get_data().get_name() << " ";
               current_clerk_node = current_clerk_node->get_next();
             }
-            print_line("Idel clerks: " + clerks.str() + ".", line);
+            print_line("Idle clerks: " + clerks.str() + ".", line);
           }
           
         } else if(stm.str() == "busy") {
-          if(idel_clerks.get_length() != 0 && busy_clerks.get_length() == 0)
+          if(idle_clerks.get_length() != 0 && busy_clerks.get_length() == 0)
             print_line("All clerks are wating for customers to serve.", line);
-          else if(idel_clerks.get_length() == 0 && busy_clerks.get_length() == 0)
+          else if(idle_clerks.get_length() == 0 && busy_clerks.get_length() == 0)
             print_line("There is no clerks yet arrived.", line);
           else {
             stringstream clerks;
@@ -143,7 +143,7 @@ void *input(void*) {
         }
         Clerk k(name.str(), now);
         print_line(name.str() + " has arrived.", line);
-        idel_clerks.enqueue(k);
+        idle_clerks.enqueue(k);
       } else
         print_line("Can't resolve this command!", line); 
         
@@ -177,9 +177,9 @@ void *sys(void*) {
   struct tm *tmp;
   while(true) {
     sleep(1);
-    while(!wating_customers.is_empty() && !idel_clerks.is_empty()) {
+    while(!wating_customers.is_empty() && !idle_clerks.is_empty()) {
       Customer c = wating_customers.dequeue();
-      Clerk k = idel_clerks.dequeue();
+      Clerk k = idle_clerks.dequeue();
       c.set_clerk(k);
       c.set_service_time(now);
       serving_customers.add(c);
@@ -200,7 +200,7 @@ void *sys(void*) {
         print_line(customer_name + " is now leaving.", line);
 
         print_line(current_customer_node->get_data().get_clerk()->get_name() + " is wating for another customer.", line);
-        idel_clerks.enqueue(*(current_customer_node->get_data().get_clerk()));
+        idle_clerks.enqueue(*(current_customer_node->get_data().get_clerk()));
         busy_clerks.remove(*current_clerk); 
         current_customer_node = serving_customers.remove(current_customer_node->get_data());
       } else
