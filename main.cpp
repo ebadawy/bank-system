@@ -185,7 +185,8 @@ void *sys(void*) {
       serving_customers.add(c);
       k.set_customer(c);
       busy_clerks.add(k);
-      stm << k.get_name() << " is serving " << c.get_name();
+      stm.str("");
+      stm << c.get_clerk()->get_name() << " is serving " << c.get_name() << ".";
       print_line(stm.str(), line);
     }
     Node<Customer>* current_customer_node = serving_customers.get_head();
