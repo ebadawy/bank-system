@@ -21,6 +21,7 @@ Queue<Customer> wating_customers;
 LinkedList<Customer> serving_customers;
 Queue<Clerk> idel_clerks;
 LinkedList<Clerk> busy_clerks;
+
 int line = 0;
 
 time_t now;
@@ -99,17 +100,55 @@ void *input(void*) {
         wating_customers.enqueue(c);
       }
     } else if(cmd.str() == "cler") {
-      int i = 6;
-      char c = str[i];
-      while(c) {
-        name << c;
-        c = str[++i];
-      }
-      Clerk k(name.str(), now);
-      print_line(name.str() + " has arrived.", line);
-      idel_clerks.enqueue(k);
+      if(str[5] == '-') {
+        stringstream stm;
+        stm << str[6] << str[7] << str[8] << str[9];
+        if(stm.str() == "idel") {
+          if(idel_clerks.get_length() == 0 && busy_clerks.get_length() != 0)
+            print_line("All clerks are busy serving other customers.", line);
+          else if(idel_clerks.get_length() == 0 && busy_clerks.get_length() == 0)
+            print_line("There is no clerks yet arrived.", line);
+          else {
+            stringstream clerks;
+            Node<Clerk> *current_clerk_node = idel_clerks.get_first();
+            while(current_clerk_node != NULL) {
+              clerks << current_clerk_node->get_data().get_name() << " ";
+              current_clerk_node = current_clerk_node->get_next();
+            }
+            print_line("Idel clerks: " + clerks.str() + ".", line);
+          }
+          
+        } else if(stm.str() == "busy") {
+          if(idel_clerks.get_length() != 0 && busy_clerks.get_length() == 0)
+            print_line("All clerks are wating for customers to serve.", line);
+          else if(idel_clerks.get_length() == 0 && busy_clerks.get_length() == 0)
+            print_line("There is no clerks yet arrived.", line);
+          else {
+            stringstream clerks;
+            Node<Clerk> *current_clerk_node = busy_clerks.get_first();
+            while(current_clerk_node != NULL) {
+              clerks << current_clerk_node->get_data().get_name() << " ";
+              current_clerk_node = current_clerk_node->get_next();
+            }
+            print_line("busy clerks: " + clerks.str() + ".", line);
+          }
+          
+        } else{}
+      } else if(str[5] == ' '){
+        int i = 6;
+        char c = str[i];
+        while(c) {
+          name << c;
+          c = str[++i];
+        }
+        Clerk k(name.str(), now);
+        print_line(name.str() + " has arrived.", line);
+        idel_clerks.enqueue(k);
+      } else
+        print_line("Can't resolve this command!", line); 
+        
     } else 
-      test("Can't resolve this command!", line, COLOR_GREEN); 
+      print_line("Can't resolve this command!", line); 
     
   }
 }
