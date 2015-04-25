@@ -82,28 +82,81 @@ void *input(void*) {
     if(cmd.str() == "quit" && !str[4])
       break;
     else if(cmd.str() == "cust") {
-      int i = 9;
-      char c = str[i];
-      name.str("");
-      service.str("");
-      //get customer name
-      while(c != ',') {
-        name << c;
-        c = str[++i];          
-      }
-      //get customer service
-      while(c) {
-        if(c != ',' && c != ' ')
-          service << c;
-        c = str[++i];
-      }
-      if(service.str() != "withdraw" && service.str() != "depose" &&
-         service.str() != "transfer" )
-        print_line("Malformed Service!", line);
-      else {
-        print_line(name.str() + " want to make a " + service.str() + " operation.", line);
-        Customer c(name.str(), service.str(), now);
-        wating_customers.enqueue(c);
+      if (str[8] == '-') {
+        stringstream stm;
+        stm << str[9] << str[10] << str[11] << str[12] << str[13] << str[14];
+        if(stm.str() == "served") {
+          if(wating_customers.get_length() == 0 && 
+             withdraw_customers.is_empty() && depose_customers.is_empty() &&
+             transfer_customers.is_empty())
+            print_line("There is no customers yet arrived.", line);
+          else if(wating_customers.get_length() != 0 && 
+             withdraw_customers.is_empty() && depose_customers.is_empty() &&
+             transfer_customers.is_empty())
+            print_line("All customers are wating.", line);
+          else {
+            stringstream customers;
+            Node<Customer> *current_customer_node = withdraw_customers.get_first();
+            while(current_customer_node != NULL) {
+              customers << current_customer_node->get_data().get_name() << ", ";
+              current_customer_node = current_customer_node->get_next();
+            }
+            current_customer_node = depose_customers.get_first();
+            while(current_customer_node != NULL) {
+              customers << current_customer_node->get_data().get_name() << ", ";
+              current_customer_node = current_customer_node->get_next();
+            }
+            current_customer_node = transfer_customers.get_first();
+            while(current_customer_node != NULL) {
+              customers << current_customer_node->get_data().get_name() << ", ";
+              current_customer_node = current_customer_node->get_next();
+            }
+            print_line("Served Customers: " + customers.str().substr(0, customers.str().length()-2) + ".", line);
+          } 
+        } else if(stm.str() == "wating") {
+          if(wating_customers.is_empty() && 
+             withdraw_customers.is_empty() && depose_customers.is_empty() &&
+             transfer_customers.is_empty())
+            print_line("There is no customers yet arrived.", line);
+          else if(wating_customers.is_empty() && 
+             (!withdraw_customers.is_empty() || depose_customers.is_empty() ||
+             transfer_customers.is_empty()))
+            print_line("All customers are currently served.", line);
+          else {
+            stringstream customers;
+            Node<Customer> *current_customer_node = wating_customers.get_first();
+            while(current_customer_node != NULL) {
+              customers << current_customer_node->get_data().get_name() << ", ";
+              current_customer_node = current_customer_node->get_next();
+            }
+            print_line("Wating Customers: " + customers.str().substr(0, customers.str().length()-2) + ".", line); 
+          }
+        } else
+          print_line("Unknown option -- usage [customer-served] [customer-wating]", line);
+      } else if (str[8] == ' ') {
+        int i = 9;
+        char c = str[i];
+        name.str("");
+        service.str("");
+        //get customer name
+        while(c != ',') {
+          name << c;
+          c = str[++i];          
+        }
+        //get customer service
+        while(c) {
+          if(c != ',' && c != ' ')
+            service << c;
+          c = str[++i];
+        }
+        if(service.str() != "withdraw" && service.str() != "depose" &&
+           service.str() != "transfer" )
+          print_line("Malformed Service!", line);
+        else {
+          print_line(name.str() + " want to make a " + service.str() + " operation.", line);
+          Customer c(name.str(), service.str(), now);
+          wating_customers.enqueue(c);
+        }
       }
     } else if(cmd.str() == "cler") {
       if(str[5] == '-') {
@@ -122,10 +175,10 @@ void *input(void*) {
             stringstream clerks;
             Node<Clerk> *current_clerk_node = idle_clerks.get_first();
             while(current_clerk_node != NULL) {
-              clerks << current_clerk_node->get_data().get_name() << " ";
+              clerks << current_clerk_node->get_data().get_name() << ", ";
               current_clerk_node = current_clerk_node->get_next();
             }
-            print_line("Idle clerks: " + clerks.str() + ".", line);
+            print_line("Idle Clerks: " + clerks.str().substr(0,clerks.str().length()-2) + ".", line);
           }
           
         } else if(stm.str() == "busy") {
@@ -143,28 +196,28 @@ void *input(void*) {
             Node<Clerk> *current_clerk_node = withdraw_clerks.get_first();
             
             while(current_clerk_node != NULL) {
-              clerks << current_clerk_node->get_data().get_name() << " ";
+              clerks << current_clerk_node->get_data().get_name() << ", ";
               current_clerk_node = current_clerk_node->get_next();
             }
             
             current_clerk_node = depose_clerks.get_first();
             
             while(current_clerk_node != NULL) {
-              clerks << current_clerk_node->get_data().get_name() << " ";
+              clerks << current_clerk_node->get_data().get_name() << ", ";
               current_clerk_node = current_clerk_node->get_next();
             }
             
             current_clerk_node = transfer_clerks.get_first();
             
             while(current_clerk_node != NULL) {
-              clerks << current_clerk_node->get_data().get_name() << " ";
+              clerks << current_clerk_node->get_data().get_name() << ", ";
               current_clerk_node = current_clerk_node->get_next();
             }
-            
-            print_line("busy clerks: " + clerks.str() + ".", line);
+            print_line("Busy Clerks: " + clerks.str().substr(0,clerks.str().length()-2) + ".", line);
           }
           
-        } else{}
+        } else
+          print_line("Unknown option -- usage [clerk-busy] [clerk-idle]", line);
       } else if(str[5] == ' '){
         int i = 6;
         char c = str[i];
@@ -238,7 +291,7 @@ void *sys(void*) {
         Clerk k = withdraw_clerks.dequeue();
         idle_clerks.enqueue(k);
         print_line(k.get_name() + " is wating for another customer.", line);       
-      }
+    }
     
     if(!depose_customers.is_empty()&&
         depose_customers.get_first()->get_data().get_finish_time() <= now) {
@@ -247,7 +300,7 @@ void *sys(void*) {
       Clerk k = depose_clerks.dequeue();
       idle_clerks.enqueue(k);
       print_line(k.get_name() + " is wating for another customer.", line);
-      }
+    }
     
     if(!transfer_customers.is_empty()&&
         transfer_customers.get_first()->get_data().get_finish_time() <= now) {
@@ -256,25 +309,7 @@ void *sys(void*) {
       Clerk k = transfer_clerks.dequeue();
       idle_clerks.enqueue(k);
       print_line(k.get_name() + " is wating for another customer.", line);
-      }
-   /* 
-    Node<Customer>* current_customer_node = serving_customers.get_first();
-    string customer_name, clerk_name;
-    while(current_customer_node != NULL) {
-      if(current_customer_node->get_data().get_finish_time() <= now) {
-        Clerk *current_clerk = current_customer_node->get_data().get_clerk();
-        clerk_name = current_clerk->get_name();
-        customer_name = current_customer_node->get_data().get_name();
-        
-        print_line(customer_name + " is now leaving.", line);
-
-        print_line(current_customer_node->get_data().get_clerk()->get_name() + " is wating for another customer.", line);
-        idle_clerks.enqueue(*(current_customer_node->get_data().get_clerk()));
-        busy_clerks.remove(*current_clerk); 
-        current_customer_node = serving_customers.remove(current_customer_node->get_data());
-      } else
-        current_customer_node = current_customer_node->get_next();  
-    }*/
+    }
   }  
 }
 void print_line(string msg, int &row) {
