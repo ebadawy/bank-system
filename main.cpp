@@ -17,10 +17,16 @@ void *clock(void*);
 void *sys(void*);
 void print_scr(WINDOW *win, string str);
 void print_line(string str, int &row);
+
 Queue<Customer> wating_customers;
-LinkedList<Customer> serving_customers;
+Queue<Customer> withdraw_customers;
+Queue<Customer> depose_customers;
+Queue<Customer> transfer_customers;
+
 Queue<Clerk> idle_clerks;
-LinkedList<Clerk> busy_clerks;
+Queue<Clerk> withdraw_clerks;
+Queue<Clerk> depose_clerks;
+Queue<Clerk> transfer_clerks;
 
 int line = 0;
 
@@ -104,9 +110,13 @@ void *input(void*) {
         stringstream stm;
         stm << str[6] << str[7] << str[8] << str[9];
         if(stm.str() == "idle") {
-          if(idle_clerks.get_length() == 0 && busy_clerks.get_length() != 0)
+          if(idle_clerks.get_length() == 0 &&
+             (!withdraw_customers.is_empty() || !depose_customers.is_empty() || 
+              !transfer_customers.is_empty()))
             print_line("All clerks are busy serving other customers.", line);
-          else if(idle_clerks.get_length() == 0 && busy_clerks.get_length() == 0)
+          else if(idle_clerks.get_length() == 0 && 
+                  withdraw_customers.is_empty() && depose_customers.is_empty() && 
+                  transfer_customers.is_empty())
             print_line("There is no clerks yet arrived.", line);
           else {
             stringstream clerks;
@@ -119,17 +129,38 @@ void *input(void*) {
           }
           
         } else if(stm.str() == "busy") {
-          if(idle_clerks.get_length() != 0 && busy_clerks.get_length() == 0)
+          if( idle_clerks.get_length() != 0 &&
+              withdraw_customers.is_empty() && depose_customers.is_empty() && 
+              transfer_customers.is_empty())
             print_line("All clerks are wating for customers to serve.", line);
-          else if(idle_clerks.get_length() == 0 && busy_clerks.get_length() == 0)
+          else if(idle_clerks.get_length() == 0 &&
+                  withdraw_customers.is_empty() && depose_customers.is_empty() && 
+                  transfer_customers.is_empty())
             print_line("There is no clerks yet arrived.", line);
           else {
             stringstream clerks;
-            Node<Clerk> *current_clerk_node = busy_clerks.get_first();
+              
+            Node<Clerk> *current_clerk_node = withdraw_clerks.get_first();
+            
             while(current_clerk_node != NULL) {
               clerks << current_clerk_node->get_data().get_name() << " ";
               current_clerk_node = current_clerk_node->get_next();
             }
+            
+            current_clerk_node = depose_clerks.get_first();
+            
+            while(current_clerk_node != NULL) {
+              clerks << current_clerk_node->get_data().get_name() << " ";
+              current_clerk_node = current_clerk_node->get_next();
+            }
+            
+            current_clerk_node = transfer_clerks.get_first();
+            
+            while(current_clerk_node != NULL) {
+              clerks << current_clerk_node->get_data().get_name() << " ";
+              current_clerk_node = current_clerk_node->get_next();
+            }
+            
             print_line("busy clerks: " + clerks.str() + ".", line);
           }
           
@@ -182,13 +213,51 @@ void *sys(void*) {
       Clerk k = idle_clerks.dequeue();
       c.set_clerk(k);
       c.set_service_time(now);
-      serving_customers.add(c);
       k.set_customer(c);
-      busy_clerks.add(k);
+
+      if(c.get_service() == "withdraw") {
+        withdraw_customers.enqueue(c);
+        withdraw_clerks.enqueue(k);
+      } else if(c.get_service() == "depose") {
+        depose_customers.enqueue(c);
+        depose_clerks.enqueue(k);
+      } else {
+        transfer_customers.enqueue(c);
+        transfer_clerks.enqueue(k);
+      }
+
       stm.str("");
       stm << c.get_clerk()->get_name() << " is serving " << c.get_name() << ".";
       print_line(stm.str(), line);
     }
+
+    if(!withdraw_customers.is_empty()&&
+         withdraw_customers.get_first()->get_data().get_finish_time() <= now) {
+        Customer c = withdraw_customers.dequeue();
+        print_line(c.get_name() + " is now leaving.", line);
+        Clerk k = withdraw_clerks.dequeue();
+        idle_clerks.enqueue(k);
+        print_line(k.get_name() + " is wating for another customer.", line);       
+      }
+    
+    if(!depose_customers.is_empty()&&
+        depose_customers.get_first()->get_data().get_finish_time() <= now) {
+      Customer c = depose_customers.dequeue();
+      print_line(c.get_name() + " is now leaving.", line);
+      Clerk k = depose_clerks.dequeue();
+      idle_clerks.enqueue(k);
+      print_line(k.get_name() + " is wating for another customer.", line);
+      }
+    
+    if(!transfer_customers.is_empty()&&
+        transfer_customers.get_first()->get_data().get_finish_time() <= now) {
+      Customer c = transfer_customers.dequeue();
+      print_line(c.get_name() + " is now leaving.", line);
+      Clerk k = transfer_clerks.dequeue();
+      idle_clerks.enqueue(k);
+      print_line(k.get_name() + " is wating for another customer.", line);
+      }
+   /* 
     Node<Customer>* current_customer_node = serving_customers.get_first();
     string customer_name, clerk_name;
     while(current_customer_node != NULL) {
@@ -205,7 +274,7 @@ void *sys(void*) {
         current_customer_node = serving_customers.remove(current_customer_node->get_data());
       } else
         current_customer_node = current_customer_node->get_next();  
-    }
+    }*/
   }  
 }
 void print_line(string msg, int &row) {
