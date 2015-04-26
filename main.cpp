@@ -29,6 +29,7 @@ Queue<Clerk> depose_clerks;
 Queue<Clerk> transfer_clerks;
 
 int line = 0;
+string output = "";
 
 time_t now;
 pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
@@ -70,7 +71,8 @@ void *input(void*) {
   while(true){
     getmaxyx(stdscr, max_y, max_x);
     input_win = newwin(1, max_x, max_y-1, 0);
-    general_win = newwin(max_y-2, max_x, 1, 0);
+    general_win = newwin(max_y-1, max_x, 1, 0);
+    scrollok(general_win, true);
     char str[70];
     print_scr(input_win, ">> ");
     wgetstr(input_win, str);
@@ -81,6 +83,11 @@ void *input(void*) {
     cmd << str[0] << str[1] << str[2] << str[3];
     if(cmd.str() == "quit" && !str[4])
       break;
+    else if(cmd.str() == "clea") {
+      output = "";
+      wprintw(general_win, output.c_str());
+      wrefresh(general_win);
+    }
     else if(cmd.str() == "cust") {
       if (str[8] == '-') {
         stringstream stm;
@@ -314,13 +321,10 @@ void *sys(void*) {
 }
 void print_line(string msg, int &row) {
   pthread_mutex_lock( &mutex1 );
-  WINDOW *tmp_win;
   struct tm *tmp;
   tmp = localtime(&now);
   stringstream str;
   int max_x, max_y;
-  getmaxyx(stdscr, max_y, max_x);
-  tmp_win = newwin(row+2, max_x, row+1, 0);
   int hour = tmp->tm_hour;
   int min = tmp->tm_min;
   int sec = tmp->tm_sec;
@@ -337,9 +341,10 @@ void print_line(string msg, int &row) {
   else
     str << " : " << sec << " ] " << msg;
   
-  const char *c = str.str().c_str();
-  wprintw(tmp_win, c);
-  wrefresh(tmp_win);
+  output += str.str() + "\n";
+  const char *c = output.c_str();
+  wprintw(general_win, c);
+  wrefresh(general_win);
   row++;
   pthread_mutex_unlock( &mutex1 );
 }
