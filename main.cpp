@@ -253,12 +253,12 @@ void *clock(void*) {
   while(true) {
     getmaxyx(stdscr, max_y, max_x);
     clock_win = newwin(1, 14, 0, max_x-14);
-    sleep(1);
     time(&now);
     tmp = localtime(&now);
     stm.str("");
     stm << tmp->tm_hour << " : " << tmp->tm_min << " : " << tmp->tm_sec;
     print_scr(clock_win, stm.str());
+    sleep(1);
  }
 }
 
