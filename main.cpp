@@ -16,7 +16,7 @@ void *input(void*);
 void *clock(void*);
 void *sys(void*);
 void print_scr(WINDOW *win, string str);
-void print_line(string str, int &row);
+void print_line(string str, bool show_time);
 
 Queue<Customer> wating_customers;
 Queue<Customer> withdraw_customers;
@@ -96,11 +96,11 @@ void *input(void*) {
           if(wating_customers.get_length() == 0 && 
              withdraw_customers.is_empty() && depose_customers.is_empty() &&
              transfer_customers.is_empty())
-            print_line("There is no customers yet arrived.", line);
+            print_line("There is no customers yet arrived.", true);
           else if(wating_customers.get_length() != 0 && 
              withdraw_customers.is_empty() && depose_customers.is_empty() &&
              transfer_customers.is_empty())
-            print_line("All customers are wating.", line);
+            print_line("All customers are wating.", true);
           else {
             stringstream customers;
             Node<Customer> *current_customer_node = withdraw_customers.get_first();
@@ -118,17 +118,17 @@ void *input(void*) {
               customers << current_customer_node->get_data().get_name() << ", ";
               current_customer_node = current_customer_node->get_next();
             }
-            print_line("Served Customers: " + customers.str().substr(0, customers.str().length()-2) + ".", line);
+            print_line("Served Customers: " + customers.str().substr(0, customers.str().length()-2) + ".",true);
           } 
         } else if(stm.str() == "wating") {
           if(wating_customers.is_empty() && 
              withdraw_customers.is_empty() && depose_customers.is_empty() &&
              transfer_customers.is_empty())
-            print_line("There is no customers yet arrived.", line);
+            print_line("There is no customers yet arrived.", true);
           else if(wating_customers.is_empty() && 
              (!withdraw_customers.is_empty() || depose_customers.is_empty() ||
              transfer_customers.is_empty()))
-            print_line("All customers are currently served.", line);
+            print_line("All customers are currently served.", true);
           else {
             stringstream customers;
             Node<Customer> *current_customer_node = wating_customers.get_first();
@@ -136,10 +136,65 @@ void *input(void*) {
               customers << current_customer_node->get_data().get_name() << ", ";
               current_customer_node = current_customer_node->get_next();
             }
-            print_line("Wating Customers: " + customers.str().substr(0, customers.str().length()-2) + ".", line); 
+            print_line("Wating Customers: " + customers.str().substr(0, customers.str().length()-2) + ".", true); 
+          }
+        } else if (stm.str().substr(0, 4) == "show") {
+          int i = 14;
+          stringstream show_msg;
+          char c = str[i];
+            name.str("");
+          while(c) {
+            name << c;
+            c = str[++i];
+          }
+          Node<Customer>* customer_node = wating_customers.find(*(new Customer(name.str())));
+          if(customer_node != NULL) {
+            show_msg << "Customer name    : " << customer_node->get_data().get_name();
+            show_msg<< "\n                 "; 
+            show_msg << "Operation        : " << customer_node->get_data().get_service();
+            show_msg<< "\n                 "; 
+            show_msg << "Wating Customers : " << wating_customers.index_of(customer_node->get_data());
+            print_line(show_msg.str(), true);
+         } else {
+            customer_node = withdraw_customers.find(*(new Customer(name.str())));
+            if(customer_node != NULL) {
+              show_msg << "Customer name    : " << customer_node->get_data().get_name();
+              show_msg<< "\n                 "; 
+              show_msg << "Operation        : " << customer_node->get_data().get_service();
+              show_msg<< "\n                 "; 
+              show_msg << "Wating Customers : Currently served by \'" 
+                       << customer_node->get_data().get_clerk()->get_name() << "\'";
+              print_line(show_msg.str(), true);
+  
+            } else {
+              customer_node = depose_customers.find(*(new Customer(name.str())));
+              if(customer_node != NULL) {
+                show_msg << "Customer name    : " << customer_node->get_data().get_name();
+                show_msg<< "\n                 "; 
+                show_msg << "Operation        : " << customer_node->get_data().get_service();
+                show_msg<< "\n                 "; 
+                show_msg << "Wating Customers : Currently served by \'" 
+                         << customer_node->get_data().get_clerk()->get_name() << "\'";
+                print_line(show_msg.str(), true);
+
+              } else {
+                customer_node = transfer_customers.find(*(new Customer(name.str())));
+                if(customer_node != NULL) {
+                  show_msg << "Customer name    : " << customer_node->get_data().get_name();
+                  show_msg<< "\n                 "; 
+                  show_msg << "Operation        : " << customer_node->get_data().get_service();
+                  show_msg<< "\n                 "; 
+                  show_msg << "Wating Customers : Currently served by \'" 
+                           << customer_node->get_data().get_clerk()->get_name() << "\'";
+                  print_line(show_msg.str(), true);
+
+                } else
+                  print_line("Can't find any customer with name `" + name.str() + "`.", true);
+              }
+            }
           }
         } else
-          print_line("Unknown option -- usage [customer-served] [customer-wating]", line);
+          print_line("Unknown option -- usage [customer-served] [customer-wating] [customer-show <name>]", true);
       } else if (str[8] == ' ') {
         int i = 9;
         char c = str[i];
@@ -158,9 +213,9 @@ void *input(void*) {
         }
         if(service.str() != "withdraw" && service.str() != "depose" &&
            service.str() != "transfer" )
-          print_line("Malformed Service!", line);
+          print_line("Malformed Service!", true);
         else {
-          print_line(name.str() + " want to make a " + service.str() + " operation.", line);
+          print_line(name.str() + " want to make a " + service.str() + " operation.", true);
           Customer c(name.str(), service.str(), now);
           wating_customers.enqueue(c);
         }
@@ -173,11 +228,11 @@ void *input(void*) {
           if(idle_clerks.get_length() == 0 &&
              (!withdraw_customers.is_empty() || !depose_customers.is_empty() || 
               !transfer_customers.is_empty()))
-            print_line("All clerks are busy serving other customers.", line);
+            print_line("All clerks are busy serving other customers.", true);
           else if(idle_clerks.get_length() == 0 && 
                   withdraw_customers.is_empty() && depose_customers.is_empty() && 
                   transfer_customers.is_empty())
-            print_line("There is no clerks yet arrived.", line);
+            print_line("There is no clerks yet arrived.", true);
           else {
             stringstream clerks;
             Node<Clerk> *current_clerk_node = idle_clerks.get_first();
@@ -185,18 +240,18 @@ void *input(void*) {
               clerks << current_clerk_node->get_data().get_name() << ", ";
               current_clerk_node = current_clerk_node->get_next();
             }
-            print_line("Idle Clerks: " + clerks.str().substr(0,clerks.str().length()-2) + ".", line);
+            print_line("Idle Clerks: " + clerks.str().substr(0,clerks.str().length()-2) + ".", true);
           }
           
         } else if(stm.str() == "busy") {
           if( idle_clerks.get_length() != 0 &&
               withdraw_customers.is_empty() && depose_customers.is_empty() && 
               transfer_customers.is_empty())
-            print_line("All clerks are wating for customers to serve.", line);
+            print_line("All clerks are wating for customers to serve.", true);
           else if(idle_clerks.get_length() == 0 &&
                   withdraw_customers.is_empty() && depose_customers.is_empty() && 
                   transfer_customers.is_empty())
-            print_line("There is no clerks yet arrived.", line);
+            print_line("There is no clerks yet arrived.", true);
           else {
             stringstream clerks;
               
@@ -220,11 +275,11 @@ void *input(void*) {
               clerks << current_clerk_node->get_data().get_name() << ", ";
               current_clerk_node = current_clerk_node->get_next();
             }
-            print_line("Busy Clerks: " + clerks.str().substr(0,clerks.str().length()-2) + ".", line);
+            print_line("Busy Clerks: " + clerks.str().substr(0,clerks.str().length()-2) + ".", true);
           }
           
         } else
-          print_line("Unknown option -- usage [clerk-busy] [clerk-idle]", line);
+          print_line("Unknown option -- usage [clerk-busy] [clerk-idle]", true);
       } else if(str[5] == ' '){
         int i = 6;
         char c = str[i];
@@ -233,13 +288,13 @@ void *input(void*) {
           c = str[++i];
         }
         Clerk k(name.str(), now);
-        print_line(name.str() + " has arrived.", line);
+        print_line(name.str() + " has arrived.", true);
         idle_clerks.enqueue(k);
       } else
-        print_line("Can't resolve this command!", line); 
+        print_line("Can't resolve this command!", true); 
         
     } else 
-      print_line("Can't resolve this command!", line); 
+      print_line("Can't resolve this command!", true); 
     
   }
 }
@@ -288,38 +343,38 @@ void *sys(void*) {
 
       stm.str("");
       stm << c.get_clerk()->get_name() << " is serving " << c.get_name() << ".";
-      print_line(stm.str(), line);
+      print_line(stm.str(), true);
     }
 
     if(!withdraw_customers.is_empty()&&
          withdraw_customers.get_first()->get_data().get_finish_time() <= now) {
         Customer c = withdraw_customers.dequeue();
-        print_line(c.get_name() + " is now leaving.", line);
+        print_line(c.get_name() + " is now leaving.", true);
         Clerk k = withdraw_clerks.dequeue();
         idle_clerks.enqueue(k);
-        print_line(k.get_name() + " is wating for another customer.", line);       
+        print_line(k.get_name() + " is wating for another customer.", true);
     }
     
     if(!depose_customers.is_empty()&&
         depose_customers.get_first()->get_data().get_finish_time() <= now) {
       Customer c = depose_customers.dequeue();
-      print_line(c.get_name() + " is now leaving.", line);
+      print_line(c.get_name() + " is now leaving.", true);
       Clerk k = depose_clerks.dequeue();
       idle_clerks.enqueue(k);
-      print_line(k.get_name() + " is wating for another customer.", line);
+      print_line(k.get_name() + " is wating for another customer.", true);
     }
     
     if(!transfer_customers.is_empty()&&
         transfer_customers.get_first()->get_data().get_finish_time() <= now) {
       Customer c = transfer_customers.dequeue();
-      print_line(c.get_name() + " is now leaving.", line);
+      print_line(c.get_name() + " is now leaving.", true);
       Clerk k = transfer_clerks.dequeue();
       idle_clerks.enqueue(k);
-      print_line(k.get_name() + " is wating for another customer.", line);
+      print_line(k.get_name() + " is wating for another customer.", true);
     }
   }  
 }
-void print_line(string msg, int &row) {
+void print_line(string msg, bool show_time) {
   pthread_mutex_lock( &mutex1 );
   struct tm *tmp;
   tmp = localtime(&now);
@@ -328,24 +383,27 @@ void print_line(string msg, int &row) {
   int hour = tmp->tm_hour;
   int min = tmp->tm_min;
   int sec = tmp->tm_sec;
-  if(hour <= 9)
-    str << "[  " << hour;
-  else
-    str << "[ " << hour;;
-  if(min <= 9) 
-    str << " :  " << min;
-  else
-    str << " : " << min;
-  if(sec <= 9)
-    str << " :  " << sec << " ] " << msg;
-  else
-    str << " : " << sec << " ] " << msg;
-  
+  if(show_time) {
+    if(hour <= 9)
+      str << "[  " << hour;
+    else
+      str << "[ " << hour;;
+    if(min <= 9) 
+      str << " :  " << min;
+    else
+      str << " : " << min;
+    if(sec <= 9)
+      str << " :  " << sec << " ] " << msg;
+    else
+      str << " : " << sec << " ] " << msg;
+  } else 
+    str << "                 " << msg; 
   output += str.str() + "\n";
   const char *c = output.c_str();
+  werase(general_win);
   wprintw(general_win, c);
   wrefresh(general_win);
-  row++;
+
   pthread_mutex_unlock( &mutex1 );
 }
 void print_scr(WINDOW *win, string msg) {

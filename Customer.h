@@ -15,6 +15,7 @@ class Customer {
   public:
     Customer();
     Customer(std::string n, std::string s, time_t arrival_t);
+    Customer(std::string n);
     void set_name(std::string n);
     void set_service(std::string s);
     void set_clerk(Clerk c) { clerk = &c; } 
@@ -45,6 +46,14 @@ Customer::Customer(std::string n, std::string s, time_t arrival_t) {
   service_time = -1;
   finish_time = -1;
   arrival_time = arrival_t;
+}
+
+Customer::Customer(std::string n) {
+  name = n;
+  service = "";
+  service_time = -1;
+  finish_time = -1;
+  arrival_time = -1;
 }
 
 void Customer::set_name(std::string n) {
